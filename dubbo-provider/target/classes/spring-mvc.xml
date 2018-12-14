@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd"
+>
+
+
+    <!--扫描注解-->
+    <context:component-scan base-package="com.sakura"/>
+    <mvc:annotation-driven/>
+
+
+    <!--因为导入了多个配置文件，所以要ignore-unresolvable="true"-->
+    <!--<context:property-placeholder location="classpath:redis.properties" ignore-unresolvable="true"/>-->
+    <context:property-placeholder location="classpath:jdbc.properties" ignore-unresolvable="true"/>
+
+    <!--配置数据源-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.user}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <property name="maxActive" value="${jdbc.maxActive}"/>
+        <!--maxIdle: 最大空闲连接 -->
+        <!--<property name="maxIdle" value="10" />-->
+        <!--minIdle: 最小空闲连接 -->
+        <property name="minIdle" value="5" />
+        <!--removeAbandoned: 是否自动回收超时连接 -->
+        <property name="removeAbandoned" value="true" />
+        <!--removeAbandonedTimeout: 超时时间(以秒数为单位) -->
+        <property name="removeAbandonedTimeout" value="180" />
+        <!--maxWait: 超时等待时间以毫秒为单位 6000毫秒/1000等于60秒 -->
+        <property name="maxWait" value="3000" />
+    </bean>
+
+
+    <!--事务配置-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <!--注解事务配置-->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+
+    <!--扫描mybatisMapper包-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="mapperLocations" value="classpath:mapper/*Mapper.xml"/>
+        <!--&lt;!&ndash;配置pageHelper&ndash;&gt;-->
+        <!--<property name="plugins">-->
+            <!--<array>-->
+                <!--<bean class="com.github.pagehelper.PageInterceptor">-->
+                    <!--<property name="properties">-->
+                        <!--<value>-->
+                            <!--helperDialect=mysql-->
+                        <!--</value>-->
+                    <!--</property>-->
+                <!--</bean>-->
+            <!--</array>-->
+        <!--</property>-->
+    </bean>
+
+    <!--扫描所有dao包-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.sakura.dao" />
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+    </bean>
+
+    <import resource="dubbo-provider.xml"/>
+
+
+
+</beans>
