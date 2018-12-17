@@ -10,11 +10,12 @@
     <dubbo:application name="dubbo-provider" owner="programmer" organization="dubbox"/>
     <!--使用 zookeeper 注册中心暴露服务，注意要先开启 zookeeper-->
     <dubbo:registry address="zookeeper://localhost:2181"/>
+    <!--如果相互依赖的话 设置 check="false" 即是否检查依赖的服务是否启动，把这个选项置为false就可以了-->
+    <dubbo:reference id="consumerService" interface="com.sakura.service.ConsumerService" check="false"/>
 
     <!-- 用dubbo协议在20880端口暴露服务 -->
     <dubbo:protocol name="dubbo" port="20880" />
     <!--使用 dubbo 协议实现定义好的 api.PermissionService 接口-->
     <dubbo:service interface="com.sakura.service.UserService" ref="userService" protocol="dubbo" />
-    <!--具体实现该接口的 bean-->
-    <bean id="userService" class="com.sakura.service.impl.UserServiceImpl"/>
+
 </beans>
